@@ -5,6 +5,8 @@ This package provides a compile-time transformation to generate web components f
 ## Installation:
 
 1. Add this nuget package to your project.
+    * https://www.nuget.org/packages/Fable.React.WebComponent
+   
 2. add following npm packages to you project
     * ```react-to-webcomponent```
     * ```prop-types```
