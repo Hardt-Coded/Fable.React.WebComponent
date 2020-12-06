@@ -4,14 +4,23 @@ This package provides a compile-time transformation to generate web components f
 
 ## Installation:
 
+1. Add this nuget package to your project.
+2. add following npm packages to you project
+    * ```react-to-webcomponent```
+    * ```prop-types```
+    
+    ```
+    npm install react-to-webcomponents
 
-Add this nuget package to your project:
+    npm install prop-types
+
+    ```
 
 ## Usage:
 
 How to build a web component!
 
-### 1. Build a react component of your choice with Feliz or maybe other library. You should return a ```ReactElement```
+### 1. Build a react component function of your choice with Feliz or maybe other library. You have to return a ```ReactElement``` and add the ```[<ReactWebComponent>]```attribute!
 
 The input props for you react component must be from the type ```record``` (it should be currently a anonymous record, in order to work with ```react-refresh```, see know issues) or a unit, if you don't have any parameters at all.
 
@@ -101,6 +110,19 @@ let elmishWebComp = ElmishComponent
 
 ```
 
+## Options
+
+
+The ```[<CreateReactWebComponent>]``` has a mandatory option, the name of the custom element you want to generate.
+
+Also you have the option to use the ```shadow DOM```(default) or the ```Lite DOM```.
+
+Example:
+```fsharp
+// for Lite DOM
+[<CreateReactWebComponent("my-custom-element", false)>]
+// ...
+```
 
 ## Know Issues:
 

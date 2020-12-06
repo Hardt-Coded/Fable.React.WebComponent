@@ -13,6 +13,14 @@
 	  <PackageReleaseNotes>first version</PackageReleaseNotes>
   </PropertyGroup>
 
+
+	<PropertyGroup>
+		<NpmDependencies>
+			<NpmPackage Name="react-to-webcomponent" Version="&gt;= 1.5.0" ResolutionStrategy="Max" />
+			<NpmPackage Name="prop-types" Version="&gt;= 15.7.2" ResolutionStrategy="Max" />
+		</NpmDependencies>
+	</PropertyGroup>
+
   <ItemGroup>
     <Compile Include="AstUtils.fs" />
     <Compile Include="Utils.fs" />
