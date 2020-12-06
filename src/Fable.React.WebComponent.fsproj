@@ -2,9 +2,9 @@
 
   <PropertyGroup>
 	  <Description>Provides a compile-time transformation to generate web components from react components</Description>
-	  <RepositoryUrl>https://github.com/DieselMeister/Fable.React.WebComponent</RepositoryUrl>
-	  <PackageProjectUrl></PackageProjectUrl>
-	  <PackageLicenseUrl></PackageLicenseUrl>
+	  <RepositoryUrl>https://github.com/DieselMeister/Fable.React.WebComponent.git</RepositoryUrl>
+	  <PackageProjectUrl>https://github.com/DieselMeister/Fable.React.WebComponent</PackageProjectUrl>
+	  <PackageLicenseUrl>https://github.com/DieselMeister/Fable.React.WebComponent/blob/master/LICENSE</PackageLicenseUrl>
 	  <PackageTags>fsharp;fable;react;html</PackageTags>
 	  <Authors>Hardt IT-Solutions - Daniel Hardt</Authors>
 	  <Version>0.0.1</Version>
