@@ -14,7 +14,7 @@ This package provides a compile-time transformation to generate web components f
 
 
     ```
-    npm install react-to-webcomponents
+    npm install react-to-webcomponent
 
     npm install prop-types
 
