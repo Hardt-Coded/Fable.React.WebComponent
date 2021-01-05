@@ -4,7 +4,8 @@ This package provides a compile-time transformation to generate web components f
 
 ## Installation:
 
-1. Add this nuget package to your project.
+1. Add this nuget package to your project and Feliz.
+    * Feliz (or if you want Feliz.UseElmish)
     * https://www.nuget.org/packages/Fable.React.WebComponent
    
 2. add following npm packages to you project
