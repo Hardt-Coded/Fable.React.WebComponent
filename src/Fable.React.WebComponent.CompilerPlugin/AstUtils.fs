@@ -1,4 +1,10 @@
-﻿module AstUtils 
+﻿
+module AstUtils 
+    #if FABLE_COMPILER    
+    
+    do()
+    
+    #else
     open Fable
     open Fable.AST
     open System
@@ -176,4 +182,6 @@
         if String.IsNullOrWhiteSpace input
         then ""
         else input.First().ToString().ToLower() + String.Join("", input.Skip(1))
+
+    #endif
 

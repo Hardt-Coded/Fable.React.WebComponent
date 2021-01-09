@@ -1,0 +1,38 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	  <Description>Provides a compile-time transformation to generate web components from react components. this is the compiler plugin.</Description>
+	  <RepositoryUrl>https://github.com/DieselMeister/Fable.React.WebComponent.git</RepositoryUrl>
+	  <PackageProjectUrl>https://github.com/DieselMeister/Fable.React.WebComponent</PackageProjectUrl>
+	  <PackageLicenseUrl>https://github.com/DieselMeister/Fable.React.WebComponent/blob/master/LICENSE</PackageLicenseUrl>
+	  <PackageTags>fsharp;fable;react;html</PackageTags>
+	  <Authors>Hardt IT-Solutions - Daniel Hardt</Authors>
+	  <Version>0.0.2</Version>
+	  <TargetFramework>netstandard2.0</TargetFramework>
+	  <GenerateDocumentationFile>true</GenerateDocumentationFile>
+	  <PackageReleaseNotes>split packages</PackageReleaseNotes>
+  </PropertyGroup>
+
+
+	<PropertyGroup>
+		<NpmDependencies>
+			<NpmPackage Name="react-to-webcomponent" Version="&gt;= 1.5.0" ResolutionStrategy="Max" />
+			<NpmPackage Name="prop-types" Version="&gt;= 15.7.2" ResolutionStrategy="Max" />
+		</NpmDependencies>
+	</PropertyGroup>
+
+	
+	<ItemGroup>
+    <Compile Include="AstUtils.fs" />
+    <Compile Include="Utils.fs" />
+    <Compile Include="WebComponents.fs" />
+  </ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Fable.AST" Version="3.0.0" />
+		<!--<PackageReference Include="Fable.Browser.Dom" Version="2.2.0" />
+		<PackageReference Update="FSharp.Core" Version="4.7.2" />-->
+	</ItemGroup>
+	
+
+</Project>

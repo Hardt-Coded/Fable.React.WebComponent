@@ -1,5 +1,11 @@
 ﻿module Utils
 
+
+#if FABLE_COMPILER    
+
+do()
+
+#else
 open Fable
 open Fable.AST
 open Fable.AST.Fable
@@ -14,4 +20,4 @@ let (|MemberNotReturningReactElement|_|) (decl:MemberDecl) =
 
 let (|MemberNotReturningDelegateReactElement|_|) (decl:MemberDecl) = 
     if not (AstUtils.isFunctionWithReturnValueReactElement decl.Body.Type) then Some () else None
-
+#endif
