@@ -5,11 +5,14 @@ open Browser.Dom
 open Fable.Core.JsInterop
 open Fable.React.WebComponent
 open App
+open ReactToWebComponent
+
+
 
 importAll "./styles/global.scss"
 
 [<CreateReactWebComponent("hello-world", true)>]
-let customeEl = HelloWorld // |> unbox<ReactToWebComponent.HTMLElement>
+let customeEl = HelloWorld 
 
 
 [<CreateReactWebComponent("hello-world-two", true)>]

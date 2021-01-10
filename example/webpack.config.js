@@ -14,6 +14,7 @@ const Dotenv = require('dotenv-webpack');
 const { patchGracefulFileSystem } = require("./webpack.common.js");
 patchGracefulFileSystem();
 
+
 // If we're running the webpack-dev-server, assume we're in development mode
 var isProduction = !process.argv.find(v => v.indexOf('webpack-dev-server') !== -1);
 
@@ -66,7 +67,13 @@ module.exports = {
     // In development, bundle styles together with the code so they can also
     // trigger hot reloads. In production, put them in a separate CSS file.
     entry: {
-        app: [resolve(CONFIG.fsharpEntry)]
+		reactToWebcomponent: [
+				resolve("./src/.fable/Fable.React.WebComponent.0.0.2/react-to-webcomponent.js")
+			]
+		,
+        app: [
+			resolve(CONFIG.fsharpEntry)
+		]
     },
     // Add a hash to the output file name in production
     // to prevent browser caching if code changes

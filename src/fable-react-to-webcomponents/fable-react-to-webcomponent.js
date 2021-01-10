@@ -1,4 +1,4 @@
-﻿var reactComponentSymbol = Symbol.for("r2wc.reactComponent");
+var reactComponentSymbol = Symbol.for("r2wc.reactComponent");
 var renderSymbol = Symbol.for("r2wc.reactRender");
 var shouldRenderSymbol = Symbol.for("r2wc.shouldRender");
 
@@ -78,11 +78,11 @@ export default function (ReactComponent, React, ReactDOM, options = {}) {
 	});
 
 	// bind all other functions to the proxy, so we have access to it
-	Object.getOwnPropertyNames(os).forEach(k => {
+	Object.getOwnPropertyNames(targetPrototype).forEach(k => {
 		var f = targetPrototype[k];
 		if (typeof f === "function"
-			&& k !== "has" && k !== "set" && k !== "getOwnPropertyDescriptor")
-			proxyPrototype[k] = f.bind(os);
+			&& k !== "has" && k !== "set" && k !== "getOwnPropertyDescriptor" && k!=="constructor")
+			proxyPrototype[k] = f.bind(targetPrototype);
 	});
 
 	WebComponent.prototype = proxyPrototype;

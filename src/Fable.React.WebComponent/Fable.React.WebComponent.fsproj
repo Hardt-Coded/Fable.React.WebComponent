@@ -22,12 +22,9 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<Content Include="*.fsproj; *.fs; *.js" PackagePath="fable\" />
-	</ItemGroup>
-
-	<ItemGroup>
     <None Include="react-to-webcomponent.js" />
     <Compile Include="EventHelpers.fs" />
+    <Compile Include="ReactToWebComponent.fs" />
   </ItemGroup>
 
 	<ItemGroup>

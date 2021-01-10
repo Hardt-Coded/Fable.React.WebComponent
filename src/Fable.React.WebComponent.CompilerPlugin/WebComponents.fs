@@ -45,7 +45,7 @@ type ReactWebComponentAttribute(exportDefault: bool) =
             // JS createElement(Component, inputAnonymousRecord)
             Fable.Sequential [
                 AstUtils.makeImport "createElement" "react"
-                AstUtils.emitJs "let myLittleComponent = function(arg) { return $0(theHtmlElementContainer.HtmlElement,arg); }" [callee]
+                AstUtils.emitJs "let myLittleComponent = function(arg) { return $0(theHtmlElementContainer.WebComponentEventHandling,arg); }" [callee]
                 // Meh: the AST say tupled, but js has only the parms object here
                 AstUtils.emitJs "createElement(myLittleComponent, tupledArg)" []
             ]
@@ -118,7 +118,7 @@ type ReactWebComponentAttribute(exportDefault: bool) =
             else if decl.Args.Length = 2  then
                 //compiler.LogError (sprintf "%A" decl.Args.[0].Type)
                 match decl.Args.[0].Type with
-                | Fable.Type.DeclaredType({ EntityRef.FullName = fn; EntityRef.Path = _},[]) when fn.Contains("HTMLElement")->
+                | Fable.Type.DeclaredType({ EntityRef.FullName = fn; EntityRef.Path = _},[]) when fn.Contains("WebComponentEventHandling")->
                     { decl with ExportDefault = exportDefault }
                 | _ ->
                     compiler.LogError "ReactWebComponents only accept one anonymous record, a unit or a tuple for HTML Element which is later injected and the parms."    
@@ -149,7 +149,7 @@ type CreateReactWebComponentAttribute(customElementName:string, useShadowDom:boo
             //compiler.LogError (sprintf "%A" arg)
             //compiler.LogError("arrived Lambda!")
             match arg.Type with
-            | Fable.Tuple [Fable.DeclaredType({FullName = injectFn},_); Fable.AnonymousRecordType (fieldName,typList)] when injectFn.Contains("HTMLElement") -> // in case of a event dispatcher injection
+            | Fable.Tuple [Fable.DeclaredType({FullName = injectFn},_); Fable.AnonymousRecordType (fieldName,typList)] when injectFn.Contains("WebComponentEventHandling") -> // in case of a event dispatcher injection
                 let allAreTypesStrings = typList |> List.forall (fun t -> t = Fable.String)
                 if (not allAreTypesStrings) then
                     compiler.LogError "For Webcomponents all properties of the anonymous record must be from type string"
@@ -183,7 +183,7 @@ type CreateReactWebComponentAttribute(customElementName:string, useShadowDom:boo
 
                             let webComCall =
                                 AstUtils.makeCall 
-                                    (AstUtils.makeImport "default" "react-to-webcomponent") 
+                                    (AstUtils.makeImport "default" "fable-react-to-webcomponent") 
                                     [ 
                                         reactFunctionWithPropsBody; 
                                         AstUtils.makeImport "default" "react"
@@ -193,11 +193,19 @@ type CreateReactWebComponentAttribute(customElementName:string, useShadowDom:boo
 
 
                             
-                            AstUtils.emitJs "let theHtmlElementContainer = { HtmlElement: {} }" []
+                            AstUtils.emitJs "let theHtmlElementContainer = { WebComponentEventHandling: {} }" []
                             //AstUtils.emitJs "" []
                             //AstUtils.emitJs "" []
                             AstUtils.emitJs "let myLittleWebComponent = $0" [ webComCall ]
-                            AstUtils.emitJs "theHtmlElementContainer.HtmlElement = myLittleWebComponent.prototype[1]" []
+                            AstUtils.emitJs "let eventDispatchImpl = myLittleWebComponent.prototype.dispatchEvent" []
+                            AstUtils.emitJs "let eventDispatch = function(ev) { eventDispatchImpl(ev) }" []
+                            AstUtils.emitJs "let addEventListenerImpl = myLittleWebComponent.prototype.addEventListener" []
+                            AstUtils.emitJs "let addEventListener = function (n, f) { addEventListenerImpl(n,f) }" []
+                            AstUtils.emitJs "let removeEventListenerImpl = myLittleWebComponent.prototype.removeEventListener" []
+                            AstUtils.emitJs "let removeEventListener = function (n, f) { removeEventListenerImpl(n,f) }" []
+                            //AstUtils.emitJs "" []
+                            AstUtils.emitJs "let webComponentEventHandling = { dispatchEvent: eventDispatch, addEventListener:addEventListener, removeEventListener:removeEventListener}" []
+                            AstUtils.emitJs "theHtmlElementContainer.WebComponentEventHandling = webComponentEventHandling" []
                             AstUtils.emitJs "customElements.define($0,myLittleWebComponent)" [ AstUtils.makeStrConst customElementName]
                         ]
                 
@@ -243,7 +251,7 @@ type CreateReactWebComponentAttribute(customElementName:string, useShadowDom:boo
 
                             let webComCall =
                                 AstUtils.makeCall 
-                                    (AstUtils.makeImport "default" "react-to-webcomponent") 
+                                    (AstUtils.makeImport "default" "fable-react-to-webcomponent") 
                                     [ 
                                         reactFunctionWithPropsBody; 
                                         AstUtils.makeImport "default" "react"
