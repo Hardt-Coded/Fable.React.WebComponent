@@ -9,6 +9,7 @@ open Browser.Types
 type WebComponentEventHandling =
     abstract member dispatchEvent:  Browser.Types.Event -> unit
     abstract member addEventListener: string -> (Event->unit) -> unit
+    abstract member removeEventListener: string -> (Event->unit) -> unit
 
 
 type Model = {
@@ -54,14 +55,11 @@ module Commands =
         |> Cmd.ofSub
 
 
-let init defaultText he =
-    match he with
-    | None ->
-        { Text = defaultText; HtmlEl = None; DerAndereSagt = "" }, Cmd.none
-    | Some he ->
-        Browser.Dom.console.log "he!"
-        Browser.Dom.console.log he
-        { Text = defaultText; HtmlEl = Some he; DerAndereSagt = "" }, Commands.addEventListener he "my-little-event"
+let init (args:{| defaulttext:string |}) eventHandling =
+    Browser.Dom.console.log "he!"
+    Browser.Dom.console.log eventHandling
+    { Text = args.defaulttext; HtmlEl = Some eventHandling; DerAndereSagt = "" }, Commands.addEventListener eventHandling "my-little-event"
+
 
 
 let update msg state =
@@ -93,26 +91,29 @@ let view state dispatch =
 
 
 
+// This form is currently under work. went into some issues with that!
+//[<ReactWebComponent>]
+//let HelloWorld (eventHandling:WebComponentEventHandling) (args:{| defaulttext:string |}) = 
+//    let state, dispatch = 
+//        React.useElmish(
+//            init args eventHandling,
+//            update,
+//            [| args.defaulttext |] |> Array.map (fun x -> x :> obj)
+//        )
+//    view state dispatch
+
 
 [<ReactWebComponent>]
-let HelloWorld (eventHandling:WebComponentEventHandling, parms:{| defaulttext:string |}) = 
+let HelloWorld ((eventHandling:WebComponentEventHandling),(args:{| defaulttext:string |})) = 
     let state, dispatch = 
         React.useElmish(
-            init parms.defaulttext (Some eventHandling),
+            init args eventHandling,
             update,
-            [| parms.defaulttext |] |> Array.map (fun x -> x :> obj)
+            [| args.defaulttext |] |> Array.map (fun x -> x :> obj)
         )
     view state dispatch
 
 
-[<ReactWebComponent>]
-let HelloWorld2 (parms:{| defaulttext:string |}) = 
-    let state, dispatch = 
-        React.useElmish(
-            init parms.defaulttext None,
-            update,
-            [| parms.defaulttext |] |> Array.map (fun x -> x :> obj)
-        )
-    view state dispatch
+
 
 

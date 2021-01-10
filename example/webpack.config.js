@@ -67,10 +67,6 @@ module.exports = {
     // In development, bundle styles together with the code so they can also
     // trigger hot reloads. In production, put them in a separate CSS file.
     entry: {
-		reactToWebcomponent: [
-				resolve("./src/.fable/Fable.React.WebComponent.0.0.2/react-to-webcomponent.js")
-			]
-		,
         app: [
 			resolve(CONFIG.fsharpEntry)
 		]

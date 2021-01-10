@@ -11,10 +11,16 @@ open ReactToWebComponent
 
 importAll "./styles/global.scss"
 
+let customeElMeh = HelloWorld 
+
+
 [<CreateReactWebComponent("hello-world", true)>]
 let customeEl = HelloWorld 
 
 
 [<CreateReactWebComponent("hello-world-two", true)>]
-let customeEl2 = HelloWorld2
+let customeEl2 = HelloWorld
+
+
+
 
