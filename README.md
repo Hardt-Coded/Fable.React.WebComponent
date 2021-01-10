@@ -82,6 +82,30 @@ let ElmishComponent (parms:{| start:string; arg2:string; arg3:string; arg4:strin
 
 ```
 
+### New in Version 0.0.2
+Also with the Version 0.0.2 it is possible to inject a helper for EventHandling.
+Your EmlishComponent must have a tupled parameter with the helper and the args.
+The Helper is not part of the package. (it's not possible to have a compiler plugin and fable code inside one package)
+
+You can inject the eventHandling-Stuff into your init and you it there. See the new example in the repo.
+
+```fsharp
+
+type WebComponentEventHandling =
+    abstract member dispatchEvent:  Browser.Types.Event -> unit
+    abstract member addEventListener: string -> (Event->unit) -> unit
+    abstract member removeEventListener: string -> (Event->unit) -> unit
+
+let ElmishComponent ((eventHandling:WebComponentEventHandling),parms:{| start:string; arg2:string; arg3:string; arg4:string; arg5:string; arg6:string |}) =
+    let state, dispatch = 
+        React.useElmish(
+            init eventHandling parms, 
+            update, 
+            [| parms.start :> obj; parms.arg2:> obj; parms.arg3:> obj; parms.arg4:> obj; parms.arg5:> obj |])
+    view state dispatch
+
+```
+
 ### 2. You have to generate the web component with the ```[<CreateWebComponent>]``` Attribute
 
 

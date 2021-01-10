@@ -5,7 +5,12 @@ open Fable.AST
 open Fable.AST.Fable
 open Utils
     
-    
+
+#if FABLE_COMPILER    
+
+do()
+
+#else
 // Tell Fable to scan for plugins in this assembly
 [<assembly:ScanForPlugins>]
 do()
@@ -22,13 +27,32 @@ type ReactWebComponentAttribute(exportDefault: bool) =
     
     /// <summary>Transforms call-site into createElement calls</summary>
     override _.TransformCall(compiler, memb, expr) =
+        //compiler.LogWarning (sprintf "%A" expr)
+        //compiler.LogWarning (sprintf "%A" memb)
         let membArgs = memb.CurriedParameterGroups |> List.concat
         match expr with
-        | Fable.Call(callee, info, typeInfo, range) when List.length membArgs = List.length info.Args ->
+        //| Fable.Call(callee, info, typeInfo, range) when List.length membArgs = List.length info.Args ->
+        //    // F# Component()
+        //    // JSX <Component />
+        //    // JS createElement(Component, inputAnonymousRecord)
+        //    (AstUtils.makeCall (AstUtils.makeImport "createElement" "react") [callee; info.Args.[0] ])
+        | Fable.Call(callee, info, typeInfo, range) when List.length info.Args = 1 ->
             // F# Component()
             // JSX <Component />
             // JS createElement(Component, inputAnonymousRecord)
             (AstUtils.makeCall (AstUtils.makeImport "createElement" "react") [callee; info.Args.[0] ])
+        | Fable.Call(callee, info, typeInfo, range) when List.length info.Args = 2 ->
+            
+            // F# Component()
+            // JSX <Component />
+            // JS createElement(Component, inputAnonymousRecord)
+            Fable.Sequential [
+                AstUtils.makeImport "createElement" "react"
+                AstUtils.emitJs "let myLittleComponent = function(arg) { return $0(theHtmlElementContainer.WebComponentEventHandling,arg); }" [callee]
+                // Meh: the AST say tupled, but js has only the parms object here
+                AstUtils.emitJs "createElement(myLittleComponent, tupledArg)" []
+            ]
+            
         | _ ->
             // return expression as is when it is not a call expression
             expr
@@ -94,25 +118,134 @@ type ReactWebComponentAttribute(exportDefault: bool) =
             else if decl.Args.Length = 1 && decl.Args.[0].Type = Fable.Type.Unit then
                 // remove arguments from functions requiring unit as input
                 { decl with Args = [ ]; ExportDefault = exportDefault }
+            else if decl.Args.Length = 2  then
+                //compiler.LogError (sprintf "%A" decl.Args.[0].Type)
+                match decl.Args.[0].Type,decl.Args.[1].Type with
+                | Fable.Type.DeclaredType({ EntityRef.FullName = fn; EntityRef.Path = _},[]), Fable.Type.AnonymousRecordType (_) ->
+                    { decl with ExportDefault = exportDefault }
+                | _ ->
+                    compiler.LogError "ReactWebComponents only accept one anonymous record, a unit or a tuple for HTML Element which is later injected and the parms."    
+                    decl
+                
+                //compiler.LogError (sprintf "%A" decl.Args.[0].Type)
+                //{ decl with ExportDefault = exportDefault }
             else
-                compiler.LogError "ReactWebComponents only accept one anonymous record or unit as parameter."
+                compiler.LogError "ReactWebComponents only accept one anonymous record, a unit or a tuple with the event dispachter and a anonymous record as parameter."
                 decl
+
+
+
+
 
 
 
 type CreateReactWebComponentAttribute(customElementName:string, useShadowDom:bool) =
     inherit MemberDeclarationPluginAttribute()
+
+    let transform (compiler:PluginHelper) decl typList fieldName =
+        let allAreTypesStrings = typList |> List.forall (fun t -> t = Fable.String)
+        if (not allAreTypesStrings) then
+            compiler.LogError "For Webcomponents all properties of the anonymous record must be from type string"
+            decl
+        else
+            let oldBody = decl.Body
+            let propTypesRequiredStr =
+                System.String.Join(
+                    ", ",
+                    fieldName 
+                    |> Array.map (fun e -> sprintf "%s: PropTypes.string.isRequired" e)
+                )
+    
+            let webCompBody =
+                Fable.Sequential [
+                
+                    let reactFunctionWithPropsBody = 
+                        AstUtils.makeCall
+                            (AstUtils.makeAnonFunction
+                                AstUtils.unitIdent
+                                (Fable.Sequential [
+                                    AstUtils.emitJs "const elem = $0" [ oldBody ]
+                                            
+                                    AstUtils.makeImport "PropTypes" "prop-types"
+                                    AstUtils.emitJs (sprintf "elem.propTypes = { %s }" propTypesRequiredStr) []
+                                    AstUtils.emitJs "elem" []
+                                ])
+                            )
+                            []
+    
+    
+                    let webComCall =
+                        AstUtils.makeCall 
+                            (AstUtils.makeImport "default" "react-to-webcomponent") 
+                            [ 
+                                reactFunctionWithPropsBody; 
+                                AstUtils.makeImport "default" "react"
+                                AstUtils.makeImport "default" "react-dom"
+                                AstUtils.emitJs (sprintf "{ shadow: %s }" (if useShadowDom then "true" else "false")) []
+                            ]
+    
+    
+                            
+                    AstUtils.emitJs "let theHtmlElementContainer = { WebComponentEventHandling: {} }" []
+                    //AstUtils.emitJs "" []
+                    //AstUtils.emitJs "" []
+                    AstUtils.emitJs "let myLittleWebComponent = $0" [ webComCall ]
+                    AstUtils.emitJs "let eventDispatchImpl = myLittleWebComponent.prototype.dispatchEvent" []
+                    AstUtils.emitJs "let eventDispatch = function(ev) { eventDispatchImpl(ev) }" []
+                    AstUtils.emitJs "let addEventListenerImpl = myLittleWebComponent.prototype.addEventListener" []
+                    AstUtils.emitJs "let addEventListener = function (n, f) { addEventListenerImpl(n,f) }" []
+                    AstUtils.emitJs "let removeEventListenerImpl = myLittleWebComponent.prototype.removeEventListener" []
+                    AstUtils.emitJs "let removeEventListener = function (n, f) { removeEventListenerImpl(n,f) }" []
+                    //AstUtils.emitJs "" []
+                    AstUtils.emitJs "let webComponentEventHandling = { dispatchEvent: eventDispatch, addEventListener:addEventListener, removeEventListener:removeEventListener}" []
+                    AstUtils.emitJs "theHtmlElementContainer.WebComponentEventHandling = webComponentEventHandling" []
+                    AstUtils.emitJs "customElements.define($0,myLittleWebComponent)" [ AstUtils.makeStrConst customElementName]
+                ]
+                
+    
+            let func = Fable.Lambda(AstUtils.unitIdent,webCompBody,None)
+            let funcCall = AstUtils.makeCall func []
+                        
+                    
+            {
+                decl with
+                    Body = funcCall
+            }
+
+    
     override _.FableMinimumVersion = "3.0"
 
     new(customElementName:string) = CreateReactWebComponentAttribute(customElementName, true)
+        
 
     override _.TransformCall(compiler, memb, expr) =
         expr
     
     override this.Transform(compiler, file, decl) =
+        //compiler.LogError (sprintf "%A" decl.Body)
         match decl.Body with
         | Fable.Lambda(arg, body, name) ->
+            //compiler.LogError (sprintf "%A" arg)
+            //compiler.LogError("arrived Lambda!")
             match arg.Type with
+            // myReactComp (eventHandlers,args)
+            | Fable.Tuple [Fable.DeclaredType({FullName = injectFn},_); Fable.AnonymousRecordType (fieldName,typList)] -> // in case of a event dispatcher injection
+                transform compiler decl typList fieldName
+                
+            // myReactComp eventHandlers args (currently deactivaed because of some issues)
+            //| Fable.DeclaredType (_,_) -> // in case of a event dispatcher injection
+            //    match body with
+            //    | Fable.Lambda (innerArg, _, _) ->
+            //        match innerArg.Type with
+            //        | Fable.AnonymousRecordType (fieldName,typList) ->
+            //            transform compiler decl typList fieldName
+            //        | _ -> 
+            //            compiler.LogError ("the second argument of function must be a anonymous record, if you want to inject the eventHandling stuff.")
+            //            decl
+            //    | _ ->
+            //        compiler.LogError ("the second argument of function must be a anonymous record, if you want to inject the eventHandling stuff.")
+            //        decl
+            // myReactComp args
             | Fable.AnonymousRecordType(fieldName,typList) ->
                 let allAreTypesStrings = typList |> List.forall (fun t -> t = Fable.String)
                 if (not allAreTypesStrings) then
@@ -135,7 +268,7 @@ type CreateReactWebComponentAttribute(customElementName:string, useShadowDom:boo
                                     (AstUtils.makeAnonFunction
                                         AstUtils.unitIdent
                                         (Fable.Sequential [
-                                            AstUtils.emitJs "const elem = $0" [ oldBody ]
+                                            AstUtils.emitJs "const elem = $0" [ oldBody ] 
                                             AstUtils.makeImport "PropTypes" "prop-types"
                                             AstUtils.emitJs (sprintf "elem.propTypes = { %s }" propTypesRequiredStr) []
                                             AstUtils.emitJs "elem" []
@@ -163,9 +296,9 @@ type CreateReactWebComponentAttribute(customElementName:string, useShadowDom:boo
                             Body = webCompBody
                     }
             | _ ->
-                compiler.LogError "the react function is not declared with an anonymous record as paramater!"    
+                compiler.LogError "CreateReactWebComponent: the react function is not declared with an anonymous record as paramater!"    
                 decl
         | _ ->
-            compiler.LogError "The imput for the web component must be a react element function generated from [<ReactWebComponents>]!"
+            compiler.LogError "CreateReactWebComponent: The imput for the web component must be a react element function generated from [<ReactWebComponents>]!"
             decl
-   
+#endif
