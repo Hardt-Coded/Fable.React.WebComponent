@@ -4,6 +4,7 @@ open Fable
 open Fable.AST
 open Fable.AST.Fable
 open Utils
+open System.Runtime.InteropServices
     
 
 #if FABLE_COMPILER    
@@ -37,10 +38,16 @@ type ReactWebComponentAttribute(exportDefault: bool) =
         //    // JS createElement(Component, inputAnonymousRecord)
         //    (AstUtils.makeCall (AstUtils.makeImport "createElement" "react") [callee; info.Args.[0] ])
         | Fable.Call(callee, info, typeInfo, range) when List.length info.Args = 1 ->
-            // F# Component()
-            // JSX <Component />
+            match info.Args.[0].Type with
+            // JS createElement(Component, eventHandling)
+            | Fable.Type.DeclaredType (_) ->
+                Fable.Sequential [
+                    AstUtils.makeImport "createElement" "react"
+                    AstUtils.emitJs "createElement($0, theHtmlElementContainer.WebComponentEventHandling)" [ callee ]
+                ]
             // JS createElement(Component, inputAnonymousRecord)
-            (AstUtils.makeCall (AstUtils.makeImport "createElement" "react") [callee; info.Args.[0] ])
+            | _ ->
+                (AstUtils.makeCall (AstUtils.makeImport "createElement" "react") [callee; info.Args.[0] ])
         | Fable.Call(callee, info, typeInfo, range) when List.length info.Args = 2 ->
             
             // F# Component()
@@ -73,6 +80,7 @@ type ReactWebComponentAttribute(exportDefault: bool) =
             if (AstUtils.isCamelCase decl.Name) then
                 compiler.LogWarning(sprintf "React function component '%s' is written in camelCase format. Please consider declaring it in PascalCase (i.e. '%s') to follow conventions of React applications and allow tools such as react-refresh to pick it up." decl.Name (AstUtils.capitalize decl.Name))
     
+
             // do not rewrite components accepting records as input
             if decl.Args.Length = 1 && AstUtils.isRecord compiler decl.Args.[0].Type then
                 // check whether the record type is defined in this file
@@ -115,9 +123,20 @@ type ReactWebComponentAttribute(exportDefault: bool) =
                     ignore()
                 
                 { decl with ExportDefault = exportDefault }
-            else if decl.Args.Length = 1 && decl.Args.[0].Type = Fable.Type.Unit then
-                // remove arguments from functions requiring unit as input
-                { decl with Args = [ ]; ExportDefault = exportDefault }
+            else if decl.Args.Length = 1 then
+                
+                match decl.Args.[0].Type with
+                | Fable.Type.Unit ->
+                    // remove arguments from functions requiring unit as input
+                    { decl with Args = [ ]; ExportDefault = exportDefault }
+                | Fable.Type.DeclaredType(_) ->
+                    // it's the eventHandlingHelper ... maybe :D
+                    { decl with ExportDefault = exportDefault }
+                | _ ->
+                    compiler.LogWarning (sprintf "%A" decl.Args)
+                    compiler.LogError "if you have only one argument on the react function, than it should be a unit or the event handling helper."
+                    decl
+
             else if decl.Args.Length = 2  then
                 //compiler.LogError (sprintf "%A" decl.Args.[0].Type)
                 match decl.Args.[0].Type,decl.Args.[1].Type with
@@ -139,9 +158,8 @@ type ReactWebComponentAttribute(exportDefault: bool) =
 
 
 
-type CreateReactWebComponentAttribute(customElementName:string, useShadowDom:bool, ?style:string) =
+type CreateReactWebComponentAttribute(customElementName:string, useShadowDom:bool, style:string option) =
     inherit MemberDeclarationPluginAttribute()
-
 
     let transform (compiler:PluginHelper) decl typList fieldName =
         let allAreTypesStrings = typList |> List.forall (fun t -> t = Fable.String)
@@ -216,27 +234,34 @@ type CreateReactWebComponentAttribute(customElementName:string, useShadowDom:boo
                     Body = funcCall
             }
 
-    
     override _.FableMinimumVersion = "3.0"
 
-    new(customElementName:string) = CreateReactWebComponentAttribute(customElementName, true)
+    new(customElementName:string, useShadowDom:bool) 
+        = CreateReactWebComponentAttribute(customElementName, useShadowDom, None)
+
+    new(customElementName:string, style:string)
+        = CreateReactWebComponentAttribute(customElementName, true, Some style)
+
+    new(customElementName:string)
+        = CreateReactWebComponentAttribute(customElementName, true, None)
+    
         
 
     override _.TransformCall(compiler, memb, expr) =
         expr
     
     override this.Transform(compiler, file, decl) =
-        //compiler.LogError (sprintf "%A" decl.Body)
+        //compiler.LogWarning (sprintf "%A" decl.Body)
         match decl.Body with
         | Fable.Lambda(arg, body, name) ->
-            //compiler.LogError (sprintf "%A" arg)
-            //compiler.LogError("arrived Lambda!")
+            //compiler.LogWarning (sprintf "%A" arg.Type)
+            //compiler.LogWarning("arrived Lambda!")
             match arg.Type with
-            // myReactComp (eventHandlers,args)
+            // myReactComp (eventHandling,args)
             | Fable.Tuple [Fable.DeclaredType({FullName = injectFn},_); Fable.AnonymousRecordType (fieldName,typList)] -> // in case of a event dispatcher injection
                 transform compiler decl typList fieldName
                 
-            // myReactComp eventHandlers args (currently deactivaed because of some issues)
+            // myReactComp eventHandling args (currently deactivaed because of some issues)
             //| Fable.DeclaredType (_,_) -> // in case of a event dispatcher injection
             //    match body with
             //    | Fable.Lambda (innerArg, _, _) ->
@@ -250,6 +275,8 @@ type CreateReactWebComponentAttribute(customElementName:string, useShadowDom:boo
             //        compiler.LogError ("the second argument of function must be a anonymous record, if you want to inject the eventHandling stuff.")
             //        decl
             // myReactComp args
+
+            //myReactComp args
             | Fable.AnonymousRecordType(fieldName,typList) ->
                 let allAreTypesStrings = typList |> List.forall (fun t -> t = Fable.String)
                 if (not allAreTypesStrings) then
@@ -302,8 +329,108 @@ type CreateReactWebComponentAttribute(customElementName:string, useShadowDom:boo
                         decl with
                             Body = webCompBody
                     }
+            // myReactComp ()
+            | Fable.Unit ->
+                let oldBody = decl.Body
+                let webCompBody =
+                    Fable.Sequential [
+                
+                        let reactFunctionWithPropsBody = 
+                            AstUtils.makeCall
+                                (AstUtils.makeAnonFunction
+                                    AstUtils.unitIdent
+                                    (Fable.Sequential [
+                                        AstUtils.emitJs "const elem = $0" [ oldBody ] 
+                                        AstUtils.emitJs "elem" []
+                                    ])
+                                )
+                                []
+
+
+                        let webComCall =
+                            AstUtils.makeCall 
+                                (AstUtils.makeImport "default" "fable-react-to-webcomponent") 
+                                [ 
+                                    reactFunctionWithPropsBody; 
+                                    AstUtils.makeImport "default" "react"
+                                    AstUtils.makeImport "default" "react-dom"
+                                    AstUtils.emitJs (sprintf "{ shadow: %s %s }" 
+                                            (if useShadowDom then "true" else "false")
+                                            (match style with | None -> "" | Some style -> sprintf ", css: \"%s\"" style)
+                                        ) []
+                                ]
+                
+                
+                        AstUtils.emitJs "customElements.define($0,$1)" [ AstUtils.makeStrConst customElementName ; webComCall ]
+                    ]
+
+                {
+                    decl with
+                        Body = webCompBody
+                }
+            // myReactComp eventHandling
+            | Fable.DeclaredType (_) ->
+                let oldBody = decl.Body
+    
+                let webCompBody =
+                    Fable.Sequential [
+                    
+                        let reactFunctionWithPropsBody = 
+                            AstUtils.makeCall
+                                (AstUtils.makeAnonFunction
+                                    AstUtils.unitIdent
+                                    (Fable.Sequential [
+                                        AstUtils.emitJs "const elem = $0" [ oldBody ]
+                                        AstUtils.emitJs "elem" []
+                                    ])
+                                )
+                                []
+    
+    
+                        let webComCall =
+                            AstUtils.makeCall 
+                                (AstUtils.makeImport "default" "fable-react-to-webcomponent") 
+                                [ 
+                                    reactFunctionWithPropsBody; 
+                                    AstUtils.makeImport "default" "react"
+                                    AstUtils.makeImport "default" "react-dom"
+                                    AstUtils.emitJs (sprintf "{ shadow: %s %s }" 
+                                            (if useShadowDom then "true" else "false")
+                                            (match style with | None -> "" | Some style -> sprintf ", css: \"%s\"" style)
+                                        ) []
+                                ]
+    
+    
+                                
+                        AstUtils.emitJs "let theHtmlElementContainer = { WebComponentEventHandling: {} }" []
+                        //AstUtils.emitJs "" []
+                        //AstUtils.emitJs "" []
+                        AstUtils.emitJs "let myLittleWebComponent = $0" [ webComCall ]
+                        AstUtils.emitJs "let eventDispatchImpl = myLittleWebComponent.prototype.dispatchEvent" []
+                        AstUtils.emitJs "let eventDispatch = function(ev) { eventDispatchImpl(ev) }" []
+                        AstUtils.emitJs "let addEventListenerImpl = myLittleWebComponent.prototype.addEventListener" []
+                        AstUtils.emitJs "let addEventListener = function (n, f) { addEventListenerImpl(n,f) }" []
+                        AstUtils.emitJs "let removeEventListenerImpl = myLittleWebComponent.prototype.removeEventListener" []
+                        AstUtils.emitJs "let removeEventListener = function (n, f) { removeEventListenerImpl(n,f) }" []
+                        //AstUtils.emitJs "" []
+                        AstUtils.emitJs "let webComponentEventHandling = { dispatchEvent: eventDispatch, addEventListener:addEventListener, removeEventListener:removeEventListener}" []
+                        AstUtils.emitJs "theHtmlElementContainer.WebComponentEventHandling = webComponentEventHandling" []
+                        AstUtils.emitJs "customElements.define($0,myLittleWebComponent)" [ AstUtils.makeStrConst customElementName]
+                    ]
+                    
+    
+                let func = Fable.Lambda(AstUtils.unitIdent,webCompBody,None)
+                let funcCall = AstUtils.makeCall func []
+                            
+                        
+                {
+                    decl with
+                        Body = funcCall
+                }
             | _ ->
-                compiler.LogError "CreateReactWebComponent: the react function is not declared with an anonymous record as paramater!"    
+                //compiler.LogWarning "---------------------------- CreateReactWebComponentAttribute: Transform ------------------"
+                //compiler.LogWarning (sprintf "%A" arg.Type)
+                compiler.LogError "CreateReactWebComponent: the react function is not declared with an anonymous record as parameter or with the eventHandling helper or with a unit.!"    
                 decl
         | _ ->
             compiler.LogError "CreateReactWebComponent: The imput for the web component must be a react element function generated from [<ReactWebComponents>]!"

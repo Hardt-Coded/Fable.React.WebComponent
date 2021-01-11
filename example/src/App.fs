@@ -120,6 +120,24 @@ let HelloWorld ((eventHandling:WebComponentEventHandling),(args:{| defaulttext:s
     view state dispatch
 
 
+[<ReactWebComponent>]
+let SimpleOne () =
+    Html.h1 "Simple One! "
+
+
+[<ReactWebComponent>]
+let SimpleTwo (args:{| input:string |}) =
+    Html.h1 $"Simple Two! input: {args.input}"
+
+
+[<ReactWebComponent>]
+let SimpleThree (eventHandling:WebComponentEventHandling) =
+    Browser.Dom.console.log(eventHandling)
+    Html.h1 $"Simple Three! I can send events, but have no input stuff!"
+
+
+
+
 
 
 
