@@ -177,7 +177,7 @@ type CreateReactWebComponentAttribute(customElementName:string, useShadowDom:boo
     
                     let webComCall =
                         AstUtils.makeCall 
-                            (AstUtils.makeImport "default" "react-to-webcomponent") 
+                            (AstUtils.makeImport "default" "fable-react-to-webcomponent") 
                             [ 
                                 reactFunctionWithPropsBody; 
                                 AstUtils.makeImport "default" "react"
@@ -283,7 +283,7 @@ type CreateReactWebComponentAttribute(customElementName:string, useShadowDom:boo
 
                             let webComCall =
                                 AstUtils.makeCall 
-                                    (AstUtils.makeImport "default" "react-to-webcomponent") 
+                                    (AstUtils.makeImport "default" "fable-react-to-webcomponent") 
                                     [ 
                                         reactFunctionWithPropsBody; 
                                         AstUtils.makeImport "default" "react"
