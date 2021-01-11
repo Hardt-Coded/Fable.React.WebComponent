@@ -9,13 +9,13 @@ This package provides a compile-time transformation to generate web components f
     * https://www.nuget.org/packages/Fable.React.WebComponent
    
 2. add following npm packages to you project
-    * ```react-to-webcomponent```  
+    * ```fable-react-to-webcomponent```  (please be aware, that with version 0.0.3 you have to use `fable-react-to-webcomponent` instead of `react-to-webcomponent`)
     * ```prop-types```  
       
 
 
     ```
-    npm install react-to-webcomponent
+    npm install fable-react-to-webcomponent
 
     npm install prop-types
 
@@ -123,7 +123,95 @@ let simpleWebComp = SimpleComponent
 let elmishWebComp = ElmishComponent
 ```
 
-### 3. Add your web component to the your HTML file
+### 3. Inject styling (with version 0.0.3)
+
+because of the use of shadow dom, web components ignore the global stylings.
+but now you can inject your style sheet into the webcomponent.
+
+1. you have to configure webpack, that it's build an standalone css-file (you can only inject one currenty!). often it's configured already for production, but you also need to build this for development, if you develop the web components directly.  
+`plugins:` make sure, that `MiniCssExtractPlugin` is also used in dev mode  
+`module: { rules: [ :` Like in the example project, you see, the isProduction if expression is commented out and the MiniCssExtractPlugin.loader is always used.
+    ```js
+
+        ...
+
+
+        plugins: isProduction ?
+            commonPlugins.concat([
+                new MiniCssExtractPlugin({ filename: 'style.css' }),
+                new CopyWebpackPlugin({
+                    patterns: [
+                        { from: resolve(CONFIG.assetsDir) }
+                    ]
+                }),
+            ])
+            : commonPlugins.concat([
+                new MiniCssExtractPlugin({ filename: 'style.css' }), // ADD THIS ONE TO THE DEV CONDITION
+                new ReactRefreshWebpackPlugin()
+            ]),
+    
+        ...
+
+
+        {
+                test: /\.(sass|scss|css)$/,
+                exclude: /global.scss/,
+                use: [
+                    //isProduction
+                    //    ? MiniCssExtractPlugin.loader
+                    //    : 'style-loader',
+                    MiniCssExtractPlugin.loader,
+                    {
+                        loader: 'css-loader',
+                        options: {
+                            modules: true
+                        }
+                    },
+                    {
+                        loader: 'sass-loader',
+                        options: { implementation: require("sass") }
+                    }
+                ],
+            },
+            {
+                test: /\.(sass|scss|css)$/,
+                include: /global.scss/,
+                use: [
+                    //isProduction
+                    //    ? MiniCssExtractPlugin.loader
+                    //    : 'style-loader',
+                    MiniCssExtractPlugin.loader,
+                    {
+                        loader: 'css-loader'
+                    },
+                    {
+                        loader: 'sass-loader',
+                        options: { implementation: require("sass") }
+                    }
+                ],
+            },
+
+        ...
+
+    ```
+2. There is a new flag on the `CreateReactWebComponent` Attibute. Here you can enter the css file name, that should be injected into the shadow DOM.
+    ```fsharp
+    [<CreateReactWebComponent("static-component", "style.css")>]
+    let staticWebComp = StaticComponent
+
+
+    [<CreateReactWebComponent("simple-component", "style.css")>]
+    let simpleWebComp = SimpleComponent
+
+
+    [<CreateReactWebComponent("elmish-component", "style.css")>]
+    let elmishWebComp = ElmishComponent
+    ``` 
+
+Now you styles will be injected into your web component.
+
+
+### 4. Add your web component to the your HTML file
 ```html
 
 <static-component arg1="hello world!"></static-component>
