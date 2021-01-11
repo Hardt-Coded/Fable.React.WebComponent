@@ -133,6 +133,10 @@ let SimpleTwo (args:{| input:string |}) =
 [<ReactWebComponent>]
 let SimpleThree (eventHandling:WebComponentEventHandling) =
     Browser.Dom.console.log(eventHandling)
+    eventHandling.addEventListener
+            "my-little-event"
+            (fun (e:Browser.Types.Event) -> Browser.Dom.console.log($"event received: {e?detail}"))
+        
     Html.h1 $"Simple Three! I can send events, but have no input stuff!"
 
 
