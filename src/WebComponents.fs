@@ -182,7 +182,10 @@ type CreateReactWebComponentAttribute(customElementName:string, useShadowDom:boo
                                 reactFunctionWithPropsBody; 
                                 AstUtils.makeImport "default" "react"
                                 AstUtils.makeImport "default" "react-dom"
-                                AstUtils.emitJs (sprintf "{ shadow: %s }" (if useShadowDom then "true" else "false")) []
+                                AstUtils.emitJs (sprintf "{ shadow: %s %s }" 
+                                        (if useShadowDom then "true" else "false")
+                                        (match style with | None -> "" | Some style -> sprintf ", css: \"%s\"" style)
+                                    ) []
                             ]
     
     
@@ -285,7 +288,10 @@ type CreateReactWebComponentAttribute(customElementName:string, useShadowDom:boo
                                         reactFunctionWithPropsBody; 
                                         AstUtils.makeImport "default" "react"
                                         AstUtils.makeImport "default" "react-dom"
-                                        AstUtils.emitJs (sprintf "{ shadow: %s }" (if useShadowDom then "true" else "false")) []
+                                        AstUtils.emitJs (sprintf "{ shadow: %s %s }" 
+                                                (if useShadowDom then "true" else "false")
+                                                (match style with | None -> "" | Some style -> sprintf ", css: \"%s\"" style)
+                                            ) []
                                     ]
                 
                 
