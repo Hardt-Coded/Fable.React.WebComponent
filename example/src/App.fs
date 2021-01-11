@@ -5,6 +5,9 @@ open Feliz.UseElmish
 open Elmish
 open Fable.React.WebComponent
 open Browser.Types
+open Fable.Core.JsInterop
+
+importAll "./styles/global.scss"
 
 type WebComponentEventHandling =
     abstract member dispatchEvent:  Browser.Types.Event -> unit
@@ -56,9 +59,12 @@ module Commands =
 
 
 let init (args:{| defaulttext:string |}) eventHandling =
-    Browser.Dom.console.log "he!"
-    Browser.Dom.console.log eventHandling
-    { Text = args.defaulttext; HtmlEl = Some eventHandling; DerAndereSagt = "" }, Commands.addEventListener eventHandling "my-little-event"
+    Browser.Dom.console.log (eventHandling)
+    { 
+        Text = args.defaulttext; 
+        HtmlEl = Some eventHandling; 
+        DerAndereSagt = "" 
+    }, Commands.addEventListener eventHandling "my-little-event"
 
 
 
@@ -85,7 +91,7 @@ let view state dispatch =
         Html.input [
             prop.onChange (SetText >> dispatch) //(fun text -> dispatch (SetText text))
             prop.valueOrDefault state.Text
-        ]    
+        ]  
     ]
 
 

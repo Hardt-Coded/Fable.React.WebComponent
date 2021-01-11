@@ -109,6 +109,7 @@ module.exports = {
             }),
         ])
         : commonPlugins.concat([
+            new MiniCssExtractPlugin({ filename: 'style.css' }),
             new ReactRefreshWebpackPlugin()
         ]),
     resolve: {
@@ -147,9 +148,10 @@ module.exports = {
                 test: /\.(sass|scss|css)$/,
                 exclude: /global.scss/,
                 use: [
-                    isProduction
-                        ? MiniCssExtractPlugin.loader
-                        : 'style-loader',
+                    //isProduction
+                    //    ? MiniCssExtractPlugin.loader
+                    //    : 'style-loader',
+                    MiniCssExtractPlugin.loader,
                     {
                         loader: 'css-loader',
                         options: {
@@ -166,9 +168,10 @@ module.exports = {
                 test: /\.(sass|scss|css)$/,
                 include: /global.scss/,
                 use: [
-                    isProduction
-                        ? MiniCssExtractPlugin.loader
-                        : 'style-loader',
+                    //isProduction
+                    //    ? MiniCssExtractPlugin.loader
+                    //    : 'style-loader',
+                    MiniCssExtractPlugin.loader,
                     {
                         loader: 'css-loader'
                     },

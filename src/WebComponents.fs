@@ -139,8 +139,9 @@ type ReactWebComponentAttribute(exportDefault: bool) =
 
 
 
-type CreateReactWebComponentAttribute(customElementName:string, useShadowDom:bool) =
+type CreateReactWebComponentAttribute(customElementName:string, useShadowDom:bool, ?style:string) =
     inherit MemberDeclarationPluginAttribute()
+
 
     let transform (compiler:PluginHelper) decl typList fieldName =
         let allAreTypesStrings = typList |> List.forall (fun t -> t = Fable.String)
