@@ -6,12 +6,9 @@ open Fable.Core.JsInterop
 open Fable.React.WebComponent
 open App
 
-
-
-
 importAll "./styles/global.scss"
 
-let customeElMeh = HelloWorld 
+
 
 
 [<CreateReactWebComponent("hello-world", "style.css")>]

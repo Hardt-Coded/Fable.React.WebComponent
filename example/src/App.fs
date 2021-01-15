@@ -86,7 +86,10 @@ let update msg state =
 
 let view state dispatch =
     Html.div [
-        Html.h1 state.Text
+        Html.h1 [
+            prop.className "my-test-class"
+            prop.text state.Text
+        ]
         Html.h1 $"Der andere sagt: {state.DerAndereSagt}"
         Html.input [
             prop.onChange (SetText >> dispatch) //(fun text -> dispatch (SetText text))
