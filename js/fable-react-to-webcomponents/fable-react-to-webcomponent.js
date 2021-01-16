@@ -28,7 +28,7 @@ var define = {
  * @param {Object} options - Optional parameters
  * @param {String?} options.shadow - Use shadow DOM rather than light DOM.
  */
-export default function (ReactComponent, React, ReactDOM, options = {}) {
+export default function (ReactComponent, React, ReactDOM, options = {}, embeddStyle = "") {
 	var renderAddedProperties = { isConnected: "isConnected" in HTMLElement.prototype };
 	var rendering = false;
 	// Create the web component "class"
@@ -37,10 +37,6 @@ export default function (ReactComponent, React, ReactDOM, options = {}) {
 		if (options.shadow) {
 			var sr = self.attachShadow({ mode: 'open' });
 		}
-
-
-
-
 
 		return self;
 	};
@@ -103,18 +99,23 @@ export default function (ReactComponent, React, ReactDOM, options = {}) {
 			// Container is either shadow DOM or light DOM depending on `shadow` option.
 			let container = options.shadow ? this.shadowRoot : this;
 
-
-
 			// Use react to render element in container
 			this[reactComponentSymbol] = ReactDOM.render(React.createElement(ReactComponent, data), container);
 
 			// adding styleSheets
 			if (options.css && options.shadow) {
-				let style = document.createElement('link');
-				style["rel"] = "stylesheet"
-				style["type"] = "text/css"
-				style["href"] = options.css
-				container.appendChild(style);
+				if (options.embeddCss) {
+					let style = document.createElement('style');
+					style.innerHTML = embeddStyle;
+					container.appendChild(style);
+				} else {
+					let style = document.createElement('link');
+					style["rel"] = "stylesheet";
+					style["type"] = "text/css";
+					style["href"] = options.css;
+					container.appendChild(style);
+				}
+				
 			}
 
 			rendering = false;

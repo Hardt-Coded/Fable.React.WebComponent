@@ -32,3 +32,7 @@ let simpleTwo = SimpleTwo
 let simpleThree = SimpleThree
 
 
+[<CreateReactWebComponent("simple-three-embedded", @"public\to-embedd-style.css", true)>]
+let simpleThreeEmbedded = SimpleThree
+
+

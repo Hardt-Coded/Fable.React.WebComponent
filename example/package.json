@@ -16,7 +16,7 @@
         "prop-types": "^15.7.2",
         "react": "^17.0.1",
         "react-dom": "^17.0.1",
-        "fable-react-to-webcomponent": "^0.0.3"
+        "fable-react-to-webcomponent": "^0.0.4"
     },
     "devDependencies": {
         "@babel/core": "^7.12.9",

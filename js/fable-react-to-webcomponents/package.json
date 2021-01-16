@@ -1,6 +1,6 @@
 {
 	"name": "fable-react-to-webcomponent",
-	"version": "0.0.3",
+	"version": "0.0.4",
 	"description": "Convert react components to native Web Components. It's a clone of the react-to-webcomponents with changes I need for my F# fable solution.",
 	"main": "fable-react-to-webcomponent",
 	"dependencies": {},

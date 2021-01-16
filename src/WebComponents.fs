@@ -158,7 +158,7 @@ type ReactWebComponentAttribute(exportDefault: bool) =
 
 
 
-type CreateReactWebComponentAttribute(customElementName:string, useShadowDom:bool, style:string option) =
+type CreateReactWebComponentAttribute(customElementName:string, useShadowDom:bool, style:string option, embeddStyle: bool option) =
     inherit MemberDeclarationPluginAttribute()
 
     let transform (compiler:PluginHelper) decl typList fieldName =
@@ -200,10 +200,23 @@ type CreateReactWebComponentAttribute(customElementName:string, useShadowDom:boo
                                 reactFunctionWithPropsBody; 
                                 AstUtils.makeImport "default" "react"
                                 AstUtils.makeImport "default" "react-dom"
-                                AstUtils.emitJs (sprintf "{ shadow: %s %s }" 
+                                AstUtils.emitJs (sprintf "{ shadow: %s %s %s }" 
                                         (if useShadowDom then "true" else "false")
                                         (match style with | None -> "" | Some style -> sprintf ", css: \"%s\"" style)
+                                        (match embeddStyle with | None -> "" | Some style -> sprintf ", embeddCss: %s" (style.ToString().ToLower()))
                                     ) []
+
+                                
+                                match style, embeddStyle with
+                                | _, None -> ()
+                                | _, Some b when not b -> ()
+                                | Some styleFile, Some b when b ->
+                                    
+                                    let cssFile = System.IO.File.ReadAllText(styleFile)
+                                    AstUtils.makeStrConst cssFile
+                                | _ ->
+                                    ()
+                                    
                             ]
     
     
@@ -237,13 +250,16 @@ type CreateReactWebComponentAttribute(customElementName:string, useShadowDom:boo
     override _.FableMinimumVersion = "3.0"
 
     new(customElementName:string, useShadowDom:bool) 
-        = CreateReactWebComponentAttribute(customElementName, useShadowDom, None)
+        = CreateReactWebComponentAttribute(customElementName, useShadowDom, None, Some false)
 
     new(customElementName:string, style:string)
-        = CreateReactWebComponentAttribute(customElementName, true, Some style)
+        = CreateReactWebComponentAttribute(customElementName, true, Some style, Some false)
+
+    new(customElementName:string, style:string, embeddStyle: bool)
+        = CreateReactWebComponentAttribute(customElementName, true, Some style, Some embeddStyle)
 
     new(customElementName:string)
-        = CreateReactWebComponentAttribute(customElementName, true, None)
+        = CreateReactWebComponentAttribute(customElementName, true, None, Some false)
     
         
 
@@ -315,10 +331,23 @@ type CreateReactWebComponentAttribute(customElementName:string, useShadowDom:boo
                                         reactFunctionWithPropsBody; 
                                         AstUtils.makeImport "default" "react"
                                         AstUtils.makeImport "default" "react-dom"
-                                        AstUtils.emitJs (sprintf "{ shadow: %s %s }" 
-                                                (if useShadowDom then "true" else "false")
-                                                (match style with | None -> "" | Some style -> sprintf ", css: \"%s\"" style)
-                                            ) []
+                                        AstUtils.emitJs (sprintf "{ shadow: %s %s %s }" 
+                                            (if useShadowDom then "true" else "false")
+                                            (match style with | None -> "" | Some style -> sprintf ", css: \"%s\"" style)
+                                            (match embeddStyle with | None -> "" | Some style -> sprintf ", embeddCss: %s" (style.ToString().ToLower()))
+                                        ) []
+
+
+                                        compiler.LogWarning (sprintf "%A" (style, embeddStyle))
+                                        match style, embeddStyle with
+                                        | _, None -> ()
+                                        | _, Some b when not b -> ()
+                                        | Some styleFile, Some b when b ->
+                                            
+                                            let cssFile = System.IO.File.ReadAllText(styleFile)
+                                            AstUtils.makeStrConst cssFile
+                                        | _ ->
+                                            ()
                                     ]
                 
                 
@@ -354,10 +383,22 @@ type CreateReactWebComponentAttribute(customElementName:string, useShadowDom:boo
                                     reactFunctionWithPropsBody; 
                                     AstUtils.makeImport "default" "react"
                                     AstUtils.makeImport "default" "react-dom"
-                                    AstUtils.emitJs (sprintf "{ shadow: %s %s }" 
-                                            (if useShadowDom then "true" else "false")
-                                            (match style with | None -> "" | Some style -> sprintf ", css: \"%s\"" style)
-                                        ) []
+                                    AstUtils.emitJs (sprintf "{ shadow: %s %s %s }" 
+                                        (if useShadowDom then "true" else "false")
+                                        (match style with | None -> "" | Some style -> sprintf ", css: \"%s\"" style)
+                                        (match embeddStyle with | None -> "" | Some style -> sprintf ", embeddCss: %s" (style.ToString().ToLower()))
+                                    ) []
+
+                                    compiler.LogWarning (sprintf "%A" (style, embeddStyle))
+                                    match style, embeddStyle with
+                                    | _, None -> ()
+                                    | _, Some b when not b -> ()
+                                    | Some styleFile, Some b when b ->
+                                        
+                                        let cssFile = System.IO.File.ReadAllText(styleFile)
+                                        AstUtils.makeStrConst cssFile
+                                    | _ ->
+                                        ()
                                 ]
                 
                 
@@ -394,10 +435,22 @@ type CreateReactWebComponentAttribute(customElementName:string, useShadowDom:boo
                                     reactFunctionWithPropsBody; 
                                     AstUtils.makeImport "default" "react"
                                     AstUtils.makeImport "default" "react-dom"
-                                    AstUtils.emitJs (sprintf "{ shadow: %s %s }" 
-                                            (if useShadowDom then "true" else "false")
-                                            (match style with | None -> "" | Some style -> sprintf ", css: \"%s\"" style)
-                                        ) []
+                                    AstUtils.emitJs (sprintf "{ shadow: %s %s %s }" 
+                                        (if useShadowDom then "true" else "false")
+                                        (match style with | None -> "" | Some style -> sprintf ", css: \"%s\"" style)
+                                        (match embeddStyle with | None -> "" | Some style -> sprintf ", embeddCss: %s" (style.ToString().ToLower()))
+                                    ) []
+
+                                    compiler.LogWarning (sprintf "%A" (style, embeddStyle))
+                                    match style, embeddStyle with
+                                    | _, None -> ()
+                                    | _, Some b when not b -> ()
+                                    | Some styleFile, Some b when b ->
+                                        
+                                        let cssFile = System.IO.File.ReadAllText(styleFile)
+                                        AstUtils.makeStrConst cssFile
+                                    | _ ->
+                                        ()
                                 ]
     
     
