@@ -123,7 +123,7 @@ let simpleWebComp = SimpleComponent
 let elmishWebComp = ElmishComponent
 ```
 
-### 3. Inject styling (with version 0.0.3)
+### 3. Inject styling link (with version 0.0.3) into the webcomponent
 
 because of the use of shadow dom, web components ignore the global stylings.
 but now you can inject your style sheet into the webcomponent.
@@ -211,7 +211,30 @@ but now you can inject your style sheet into the webcomponent.
 Now you styles will be injected into your web component.
 
 
-### 4. Add your web component to the your HTML file
+### 3a. Inject acutal css code into the generated js code for the web component (version 0.0.4)
+
+All you need is the css before you start transpiling the code with Fable 3.  
+So the fancy scss to css convertion, which webpack does for you doesn't work here. You may have to run a scss transpiler before.  
+The functionality loads the script and puts it into a `style` tag and make it part of the web component itself. So no external dependency like in the previous approach.  
+I helps, when you have you webcomponent hostet on another endpoint, like you do it in micro services.
+The js file, which you generate, contains the actuall css code.
+
+How do you do that?
+
+make the css parameter must point to an actual file, which the fable compiler can reach. So it's releative to the path you running Fable 3 in.  
+After that you set the flag "embeddCss" on true. Done.
+```fsharp
+
+    // for example here the css file is in the folder public
+    
+    [<CreateReactWebComponent("simple-three-embedded", @"public\to-embedd-style.css", true)>]
+    let simpleThreeEmbedded = SimpleThree
+
+    ``` 
+
+
+
+### 5. Add your web component to the your HTML file
 ```html
 
 <static-component arg1="hello world!"></static-component>

@@ -157,7 +157,11 @@ type ReactWebComponentAttribute(exportDefault: bool) =
 
 
 
-
+///<summary>Let Fable generate the necessary js to get a web component</summary>
+///<param name="customElementName">name of the custom element</param>
+///<param name="useShadowDom">use shadow dom or lite dom</param>
+///<param name="style">which css file you want to inject. In case of embeddStyle=true, make sure to add the right path for the fable compiler.</param>
+///<param name="embeddStyle">embedd the css code into the generated js</param>
 type CreateReactWebComponentAttribute(customElementName:string, useShadowDom:bool, style:string option, embeddStyle: bool option) =
     inherit MemberDeclarationPluginAttribute()
 
