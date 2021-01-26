@@ -29,6 +29,13 @@ var define = {
  * @param {String?} options.shadow - Use shadow DOM rather than light DOM.
  */
 export default function (ReactComponent, React, ReactDOM, options = {}, embeddStyle = "") {
+
+	var eventHandling = {
+		dispatchEvent:{},
+		addEventListener: {},
+        removeEventListener: {}
+    }
+
 	var renderAddedProperties = { isConnected: "isConnected" in HTMLElement.prototype };
 	var rendering = false;
 	// Create the web component "class"
@@ -99,6 +106,11 @@ export default function (ReactComponent, React, ReactDOM, options = {}, embeddSt
 			// Container is either shadow DOM or light DOM depending on `shadow` option.
 			let container = options.shadow ? this.shadowRoot : this;
 
+			// add eventhandling stuff
+			eventHandling.dispatchEvent = this.dispatchEvent;
+			eventHandling.addEventListener = this.addEventListener;
+			eventHandling.removeEventListener = this.removeEventListener;
+
 			// Use react to render element in container
 			this[reactComponentSymbol] = ReactDOM.render(React.createElement(ReactComponent, data), container);
 
@@ -130,5 +142,9 @@ export default function (ReactComponent, React, ReactDOM, options = {}, embeddSt
 			this[name] = newValue;
 		};
 	}
+
+	WebComponent.eventHandling = eventHandling;
+
+
 	return WebComponent;
 }

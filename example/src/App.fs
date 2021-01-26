@@ -50,6 +50,14 @@ module Commands =
     let addEventListener (eventHandlingStuff:WebComponentEventHandling) eventType =
         fun dispatch ->
             
+            Browser.Dom.window.addEventListener(
+                eventType,
+                (fun e ->
+                    Browser.Dom.console.log "event received on document layer!"
+                    dispatch (EventReceived (e :?> CustomEvent))
+                )
+            )
+
             eventHandlingStuff.addEventListener eventType (fun c -> 
                 Browser.Dom.console.log "event received!"
                 dispatch (EventReceived (c :?> CustomEvent))
@@ -75,7 +83,7 @@ let update msg state =
         | None ->
             { state with Text = str }, Cmd.none
         | Some htmlEl ->
-            let customEvent = Helpers.createCustomEvent "my-little-event" {| detail = str; bubbles = true |}
+            let customEvent = Helpers.createCustomEvent "my-little-event" {| detail = str; bubbles = true; composed = true |}
             { state with Text = str }, Commands.sendEvent htmlEl customEvent
     | EventReceived ev ->
         let entry = ev.detail :?> string
