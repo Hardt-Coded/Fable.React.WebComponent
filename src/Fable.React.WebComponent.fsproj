@@ -7,7 +7,7 @@
 	  <PackageLicenseUrl>https://github.com/DieselMeister/Fable.React.WebComponent/blob/master/LICENSE</PackageLicenseUrl>
 	  <PackageTags>fsharp;fable;react;html</PackageTags>
 	  <Authors>Hardt IT-Solutions - Daniel Hardt</Authors>
-	  <Version>0.0.5</Version>
+	  <Version>0.0.6</Version>
 	  <TargetFramework>netstandard2.0</TargetFramework>
 	  <GenerateDocumentationFile>true</GenerateDocumentationFile>
 	  <PackageReleaseNotes>fixes in event helper</PackageReleaseNotes>
@@ -16,7 +16,7 @@
 
 	<PropertyGroup>
 		<NpmDependencies>
-			<NpmPackage Name="fable-react-to-webcomponent" Version="&gt;= 0.0.5" ResolutionStrategy="Max" />
+			<NpmPackage Name="fable-react-to-webcomponent" Version="&gt;= 0.0.6" ResolutionStrategy="Max" />
 			<NpmPackage Name="prop-types" Version="&gt;= 15.7.2" ResolutionStrategy="Max" />
 		</NpmDependencies>
 	</PropertyGroup>
