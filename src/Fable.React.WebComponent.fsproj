@@ -7,16 +7,16 @@
 	  <PackageLicenseUrl>https://github.com/DieselMeister/Fable.React.WebComponent/blob/master/LICENSE</PackageLicenseUrl>
 	  <PackageTags>fsharp;fable;react;html</PackageTags>
 	  <Authors>Hardt IT-Solutions - Daniel Hardt</Authors>
-	  <Version>0.0.4</Version>
+	  <Version>0.0.5</Version>
 	  <TargetFramework>netstandard2.0</TargetFramework>
 	  <GenerateDocumentationFile>true</GenerateDocumentationFile>
-	  <PackageReleaseNotes>add css injection and embedding</PackageReleaseNotes>
+	  <PackageReleaseNotes>fixes in event helper</PackageReleaseNotes>
   </PropertyGroup>
 
 
 	<PropertyGroup>
 		<NpmDependencies>
-			<NpmPackage Name="react-to-webcomponent" Version="&gt;= 1.5.0" ResolutionStrategy="Max" />
+			<NpmPackage Name="fable-react-to-webcomponent" Version="&gt;= 0.0.5" ResolutionStrategy="Max" />
 			<NpmPackage Name="prop-types" Version="&gt;= 15.7.2" ResolutionStrategy="Max" />
 		</NpmDependencies>
 	</PropertyGroup>
