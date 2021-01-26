@@ -272,7 +272,7 @@ So you should develop you react component fully as react component including ren
 
 ## Release Notes
 
-### 0.0.5
+### 0.0.6
 ```
 - fixes around the event helper, which is injected. The add- and removeEventListener and the dispatchEvent function were the function form the js window object.  
   It's now changed to the shadow-dom element.
