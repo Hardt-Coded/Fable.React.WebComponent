@@ -269,3 +269,25 @@ Example:
 If you are building a web component out of an elmish react component, the update loop stops working after a ```hot-reload```.
 So you should develop you react component fully as react component including render it react style until you are finished with the development!. After that, you can transform it to a web component.
 
+
+## Release Notes
+
+### 0.0.5
+```
+- fixes around the event helper, which is injected. The add- and removeEventListener and the dispatchEvent function were the function form the js window object.  
+  It's now changed to the shadow-dom element.
+
+  if you want to catch bubbled events, you use document or window to adfd the eventListener. Like:
+
+  // JS
+  document.addEventListener("fancy-event", function(e) ... ) 
+
+
+  // Fable
+  Browser.Dom.document.addEventListener("fancy-event", (fun e -> ...))
+
+
+
+
+```
+

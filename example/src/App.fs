@@ -49,7 +49,6 @@ module Commands =
 
     let addEventListener (eventHandlingStuff:WebComponentEventHandling) eventType =
         fun dispatch ->
-            
             Browser.Dom.window.addEventListener(
                 eventType,
                 (fun e ->
