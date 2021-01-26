@@ -31,10 +31,10 @@ var define = {
 export default function (ReactComponent, React, ReactDOM, options = {}, embeddStyle = "") {
 
 	var eventHandling = {
-		dispatchEvent:{},
+		dispatchEvent: {},
 		addEventListener: {},
-        removeEventListener: {}
-    }
+		removeEventListener: {}
+	}
 
 	var renderAddedProperties = { isConnected: "isConnected" in HTMLElement.prototype };
 	var rendering = false;
@@ -107,9 +107,14 @@ export default function (ReactComponent, React, ReactDOM, options = {}, embeddSt
 			let container = options.shadow ? this.shadowRoot : this;
 
 			// add eventhandling stuff
-			eventHandling.dispatchEvent = this.dispatchEvent;
-			eventHandling.addEventListener = this.addEventListener;
-			eventHandling.removeEventListener = this.removeEventListener;
+
+			let dispatchEvent = function (ev) { container.dispatchEvent(ev) };
+			let addEventListener = function (n, f) { container.addEventListener(n, f) };
+			let removeEventListener = function (n, f) { container.removeEventListener(n, f) };
+
+			eventHandling.dispatchEvent = dispatchEvent;
+			eventHandling.addEventListener = addEventListener;
+			eventHandling.removeEventListener = removeEventListener;
 
 			// Use react to render element in container
 			this[reactComponentSymbol] = ReactDOM.render(React.createElement(ReactComponent, data), container);
@@ -127,7 +132,7 @@ export default function (ReactComponent, React, ReactDOM, options = {}, embeddSt
 					style["href"] = options.css;
 					container.appendChild(style);
 				}
-				
+
 			}
 
 			rendering = false;
